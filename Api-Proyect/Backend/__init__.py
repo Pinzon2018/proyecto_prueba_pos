@@ -1,4 +1,5 @@
 from flask import Flask
+from datetime import timedelta
 
 def create_app(config_name):
     app = Flask(__name__)
@@ -7,6 +8,7 @@ def create_app(config_name):
     app.config['JWT_TOKEN_LOCATION'] = 'headers'  
     app.config['JWT_HEADER_NAME'] = 'Authorization'
     app.config['JWT_HEADER_TYPE'] = 'Bearer'
+    app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
     USER_DB = 'root'
     PASS_DB = ''
     URL_DB = 'localhost'
