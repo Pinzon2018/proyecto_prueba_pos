@@ -2,6 +2,7 @@ from flask_restful import Resource
 from flask import request
 from ..Modelos import db, Producto, ProductoSchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
+from decimal import Decimal
 
 producto_schema = ProductoSchema()
 
@@ -172,12 +173,22 @@ class VistaProducto(Resource):
         if not producto:
             return 'Producto no encontrado', 404
 
+        try:
+            if 'Precio_Bruto_Prod' in request.json and request.json['Precio_Bruto_Prod'] not in (None, ''):
+                producto.Precio_Bruto_Prod = float(request.json['Precio_Bruto_Prod'])       
+
+            if 'Iva_Prod' in request.json and request.json['Iva_Prod'] not in (None, ''):
+                producto.Iva_Prod = float(request.json['Iva_Prod'])       
+
+            if 'Porcentaje_Ganancia' in request.json and request.json['Porcentaje_Ganancia'] not in (None, ''):
+                producto.Porcentaje_Ganancia = float(request.json['Porcentaje_Ganancia'])
+        except (ValueError, TypeError):
+            return {'error': 'Precio_Bruto_Prod, Iva_Prod y Porcentaje_Ganancia deben ser numéricos'}, 400
+
+
         producto.Nombre_Prod = request.json.get('Nombre_Prod', producto.Nombre_Prod)
         producto.Medida_Prod = request.json.get('Medida_Prod', producto.Medida_Prod)
         producto.Unidad_Medida_Prod = request.json.get('Unidad_Medida_Prod', producto.Unidad_Medida_Prod)
-        producto.Precio_Bruto_Prod = request.json.get('Precio_Bruto_Prod', producto.Precio_Bruto_Prod)
-        producto.Iva_Prod = request.json.get('Iva_Prod', producto.Iva_Prod)
-        producto.Porcentaje_Ganancia = request.json.get('Porcentaje_Ganancia', producto.Porcentaje_Ganancia)
         producto.Unidades_Totales_Prod = request.json.get('Unidades_Totales_Prod', producto.Unidades_Totales_Prod)
         producto.Estado_Prod = request.json.get('Estado_Prod', producto.Estado_Prod)
         producto.Marca_Prod = request.json.get('Marca_Prod', producto.Marca_Prod)
@@ -185,12 +196,9 @@ class VistaProducto(Resource):
         producto.FK_Id_Subcategoria = request.json.get('FK_Id_Subcategoria', producto.FK_Id_Subcategoria)
 
         producto.Precio_Neto_Unidad_Prod = round(
-          producto.Precio_Bruto_Prod * producto.Iva_Prod +
-          producto.Precio_Bruto_Prod * producto.Porcentaje_Ganancia +
-          producto.Precio_Bruto_Prod,
+          Decimal(producto.Precio_Bruto_Prod) * (1 + Decimal(producto.Iva_Prod) + Decimal(producto.Porcentaje_Ganancia)),
           3
         )
-
 
         db.session.commit()
         return producto_schema.dump(producto), 202
