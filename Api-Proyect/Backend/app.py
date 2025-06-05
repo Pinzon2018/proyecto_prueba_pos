@@ -2,7 +2,7 @@ from Backend import create_app
 from flask_migrate import Migrate
 from .Modelos import db, Usuario, Rol
 from flask_restful import Api
-from .Vistas import VistaSubcategoria, VistaProveedor, VistaRol, VistaCategoria, VistaUsuario, VistaLogin, VistaProducto, VistaPerfil, VistaVenta
+from .Vistas import VistaRol, VistaUsuario, VistaLogin, VistaProducto, VistaPerfil, VistaVenta
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from werkzeug.security import generate_password_hash
@@ -27,11 +27,11 @@ jwt = JWTManager(app)
 
 api = Api(app)
 
-api.add_resource(VistaProveedor, '/proveedores', '/proveedores/<int:Id_Proveedor>')
+# api.add_resource(VistaProveedor, '/proveedores', '/proveedores/<int:Id_Proveedor>')
 api.add_resource(VistaRol, '/roles')
-api.add_resource(VistaSubcategoria, '/subcategorias', '/subcategorias/<int:Id_Subcategoria>')
+# api.add_resource(VistaSubcategoria, '/subcategorias', '/subcategorias/<int:Id_Subcategoria>')
 api.add_resource(VistaUsuario, '/usuarios', '/usuarios/<int:Id_Usuario>')
-api.add_resource(VistaCategoria, '/categorias', '/categorias/<int:Id_Categoria>')
+# api.add_resource(VistaCategoria, '/categorias', '/categorias/<int:Id_Categoria>')
 api.add_resource(VistaLogin, '/login')
 api.add_resource(VistaProducto, '/productos', '/productos/<int:Id_Producto>')
 api.add_resource(VistaPerfil, '/perfil')

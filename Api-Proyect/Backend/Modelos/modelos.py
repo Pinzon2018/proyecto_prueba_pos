@@ -15,13 +15,13 @@ class Rol(db.Model):
     Nombre = db.Column(db.String(180))      
     usuarios= db.relationship("Usuario", back_populates="rol_rl")
 
-class Proveedor(db.Model): 
-    Id_Proveedor = db.Column(db.Integer, primary_key=True)
-    Nombre_Prov = db.Column(db.String(180))
-    Telefono_Prov = db.Column(db.String(15))  
-    Direccion_Prov = db.Column(db.String(50))
-    producto= db.relationship("Producto", back_populates="proveedor")
-    fecha_Registro_Prod= db.relationship("Fecha_Registro_Prod", back_populates="proveedor")
+# class Proveedor(db.Model): 
+#     Id_Proveedor = db.Column(db.Integer, primary_key=True)
+#     Nombre_Prov = db.Column(db.String(180))
+#     Telefono_Prov = db.Column(db.String(15))  
+#     Direccion_Prov = db.Column(db.String(50))
+#     producto= db.relationship("Producto", back_populates="proveedor")
+#     fecha_Registro_Prod= db.relationship("Fecha_Registro_Prod", back_populates="proveedor")
 
 class Usuario(db.Model):    
     Id_Usuario = db.Column(db.Integer, primary_key=True)
@@ -45,26 +45,26 @@ class Usuario(db.Model):
     def verificar_contraseña(self, password):
         return check_password_hash(self.Contraseña_hash, password)
 
-class Categoria(db.Model):   
-    Id_Categoria = db.Column(db.Integer, primary_key=True)
-    Nombre_Cat = db.Column(db.String(80))
-    Descripcion_Cat = db.Column(db.String(150))
-    subcategorias = db.relationship("Subcategoria", back_populates="categoria_rl")
+# class Categoria(db.Model):   
+#     Id_Categoria = db.Column(db.Integer, primary_key=True)
+#     Nombre_Cat = db.Column(db.String(80))
+#     Descripcion_Cat = db.Column(db.String(150))
+#     subcategorias = db.relationship("Subcategoria", back_populates="categoria_rl")
 
-class Subcategoria(db.Model):
-    Id_Subcategoria = db.Column(db.Integer, primary_key=True)
-    Nombre_Subcategoria = db.Column(db.String(250))
-    Descripcion_Subcategoria = db.Column(db.String(250))
-    categoria = db.Column(db.Integer, db.ForeignKey('categoria.Id_Categoria'))
-    categoria_rl = db.relationship("Categoria", back_populates="subcategorias")
-    productos = db.relationship("Producto", back_populates="subcategoria")
+# class Subcategoria(db.Model):
+#     Id_Subcategoria = db.Column(db.Integer, primary_key=True)
+#     Nombre_Subcategoria = db.Column(db.String(250))
+#     Descripcion_Subcategoria = db.Column(db.String(250))
+#     categoria = db.Column(db.Integer, db.ForeignKey('categoria.Id_Categoria'))
+#     categoria_rl = db.relationship("Categoria", back_populates="subcategorias")
+#     productos = db.relationship("Producto", back_populates="subcategoria")
 
 
 class Producto(db.Model):  
     Id_Producto = db.Column(db.Integer, primary_key=True, nullable=False)
     Nombre_Prod = db.Column(db.String(100))
-    Medida_Prod = db.Column(db.Integer)
-    Unidad_Medida_Prod = db.Column(db.String(80))
+    Medida_Prod = db.Column(db.String(50))
+    # Unidad_Medida_Prod = db.Column(db.String(80))
     Precio_Bruto_Prod = db.Column(Numeric(10, 2))
     Iva_Prod = db.Column(Numeric(5, 2))
     Porcentaje_Ganancia = db.Column(Numeric(5, 2))
@@ -72,10 +72,12 @@ class Producto(db.Model):
     Estado_Prod = db.Column(db.String(50))
     Marca_Prod = db.Column(db.String(60))
     Precio_Neto_Unidad_Prod = db.Column(Numeric(10, 2))
-    FK_Id_Proveedor = db.Column(db.Integer, db.ForeignKey("proveedor.Id_Proveedor"))
-    FK_Id_Subcategoria = db.Column(db.Integer, db.ForeignKey("subcategoria.Id_Subcategoria"))
-    proveedor = db.relationship("Proveedor", back_populates="producto")
-    subcategoria = db.relationship("Subcategoria", back_populates="productos")
+    Proveedor = db.Column(db.String(50))
+    Categoria = db.Column(db.String(50))
+    # FK_Id_Proveedor = db.Column(db.Integer, db.ForeignKey("proveedor.Id_Proveedor"))
+    # FK_Id_Subcategoria = db.Column(db.Integer, db.ForeignKey("subcategoria.Id_Subcategoria"))
+    # proveedor = db.relationship("Proveedor", back_populates="producto")
+    # subcategoria = db.relationship("Subcategoria", back_populates="productos")
     fecha_Registro_Prod= db.relationship("Fecha_Registro_Prod", back_populates="producto")
     detalle_Venta= db.relationship("Detalle_Venta", back_populates = "producto")
 
@@ -113,10 +115,10 @@ class Fecha_Registro_Prod(db.Model):
     Id_Fecha_Registro = db.Column(db.Integer, primary_key=True, nullable=False)
     Fecha_Registro = db.Column(db.Date)
     Cantidad = db.Column(db.Integer)
-    FK_Id_Proveedor = db.Column(db.Integer, db.ForeignKey("proveedor.Id_Proveedor"))
+    # FK_Id_Proveedor = db.Column(db.Integer, db.ForeignKey("proveedor.Id_Proveedor"))
     FK_Id_Producto = db.Column(db.Integer, db.ForeignKey("producto.Id_Producto"))
     producto = db.relationship("Producto", back_populates="fecha_Registro_Prod")
-    proveedor= db.relationship("Proveedor", back_populates="fecha_Registro_Prod")
+    # proveedor= db.relationship("Proveedor", back_populates="fecha_Registro_Prod")
 
 
     
@@ -169,33 +171,33 @@ class VentaSchema(SQLAlchemyAutoSchema):  #9
         return "${:,.0f}".format(obj.Total_Venta).replace(",", ".")
 
 
-class ProveedorSchema(SQLAlchemyAutoSchema): #3
+# class ProveedorSchema(SQLAlchemyAutoSchema): #3
     
-    class Meta:
-        model = Proveedor
-        include_relationships = True
-        load_instance = True
+#     class Meta:
+#         model = Proveedor
+#         include_relationships = True
+#         load_instance = True
 
 
-class CategoriaSchema(SQLAlchemyAutoSchema): #6
+# class CategoriaSchema(SQLAlchemyAutoSchema): #6
     
-    class Meta:
-        model = Categoria
-        include_relationships = True
-        load_instance = True
+#     class Meta:
+#         model = Categoria
+#         include_relationships = True
+#         load_instance = True
 
-class SubcategoriaSchema(SQLAlchemyAutoSchema):  #7
+# class SubcategoriaSchema(SQLAlchemyAutoSchema):  #7
     
-    categoria_rl = fields.Nested(CategoriaSchema)
+#     categoria_rl = fields.Nested(CategoriaSchema)
 
-    class Meta:
-        model = Subcategoria
-        include_relationships = True
-        load_instance = True
+#     class Meta:
+#         model = Subcategoria
+#         include_relationships = True
+#         load_instance = True
 
 class ProductoSchema(SQLAlchemyAutoSchema):  #8
-    proveedor = fields.Nested(ProveedorSchema)
-    subcategoria = fields.Nested(SubcategoriaSchema)
+    # proveedor = fields.Nested(ProveedorSchema)
+    # subcategoria = fields.Nested(SubcategoriaSchema)
 
     class Meta:
         model = Producto
@@ -215,7 +217,7 @@ class ProductoSchema(SQLAlchemyAutoSchema):  #8
 
 class Fecha_Registro_Prod (SQLAlchemyAutoSchema): #4
     
-    Proveedor = fields.Nested(ProveedorSchema)
+    # Proveedor = fields.Nested(ProveedorSchema)
     Producto = fields.Nested(ProductoSchema)
     
     class Meta:
