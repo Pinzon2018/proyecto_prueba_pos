@@ -3,7 +3,7 @@ from flask import request
 from datetime import datetime
 from ..Modelos import db, Usuario, UsuarioSchema
 from werkzeug.security import generate_password_hash
-import cloudinary.uploader
+#import cloudinary.uploader
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from ..Modelos import Rol
 

@@ -1,8 +1,9 @@
+# Api-Proyect/app.py
 from Backend import create_app
 from flask_migrate import Migrate
-from .Modelos import db, Usuario, Rol
+from Backend.Modelos import db, Usuario, Rol
 from flask_restful import Api
-from .Vistas import VistaSubcategoria, VistaProveedor, VistaRol, VistaCategoria, VistaUsuario, VistaLogin, VistaProducto, VistaPerfil, VistaVenta
+from Backend.Vistas import VistaSubcategoria, VistaProveedor, VistaRol, VistaCategoria, VistaUsuario, VistaLogin, VistaProducto, VistaPerfil, VistaVenta
 from flask_cors import CORS
 from flask_jwt_extended import JWTManager
 from werkzeug.security import generate_password_hash

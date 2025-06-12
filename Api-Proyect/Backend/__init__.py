@@ -10,7 +10,7 @@ def create_app(config_name):
     app.config['JWT_HEADER_TYPE'] = 'Bearer'
     # app.config['JWT_ACCESS_TOKEN_EXPIRES'] = timedelta(hours=2)
     USER_DB = 'root'
-    PASS_DB = ''
+    PASS_DB = 'paula10'
     URL_DB = 'localhost'
     NAME_DB = 'prueba_pos'
     FULL_URL_DB = f'mysql+pymysql://{USER_DB}:{PASS_DB}@{URL_DB}/{NAME_DB}'

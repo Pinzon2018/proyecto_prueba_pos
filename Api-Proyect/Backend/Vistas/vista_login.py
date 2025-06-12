@@ -1,4 +1,5 @@
 from flask import request
+from sqlalchemy import or_
 from ..Modelos import db, Usuario
 from flask_restful import Resource
 from flask_jwt_extended import create_access_token
@@ -35,9 +36,25 @@ class VistaLogin(Resource):
             description: error del servidor
         """
         Email_Usu = request.json.get("Email_Usu")
+        Nombre_Usu = request.json.get("Nombre_Usu")
         Contraseña_hash = request.json.get("Contraseña_hash")
-        usuario = Usuario.query.filter_by(Email_Usu=Email_Usu).first()
+
+        usuario = None
+        
+       
+        if Email_Usu:
+            usuario = Usuario.query.filter_by(Email_Usu=Email_Usu).first()
+        
+        elif Nombre_Usu:
+            usuario = Usuario.query.filter_by(Nombre_Usu=Nombre_Usu).first() 
+
+        print(f"Email_Usu: {Email_Usu}")
+        print(f"Nombre_Usu: {Nombre_Usu}")
+        print(f"Usuario encontrado: {usuario}")       
+        
+        
         if usuario and usuario.verificar_contraseña(Contraseña_hash):
             access_token = create_access_token(identity=str(usuario.Id_Usuario))
             return {"access_token": access_token}, 200
+        
         return {"error": "Credenciales inválidas"}, 401
