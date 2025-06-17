@@ -1,4 +1,4 @@
-from marshmallow import fields, post_dump
+from marshmallow import ValidationError, fields, post_dump, pre_load
 from flask_sqlalchemy import SQLAlchemy
 import enum
 from werkzeug.security import generate_password_hash, check_password_hash
@@ -9,6 +9,10 @@ import pytz
 from marshmallow_sqlalchemy import SQLAlchemyAutoSchema
 
 db = SQLAlchemy()
+
+class Movimiento(enum.Enum):
+    ENTRADA = "Entrada"
+    SALIDA = "Salida"
 
 class Rol(db.Model):
     Id_Rol = db.Column(db.Integer, primary_key=True)
@@ -33,6 +37,7 @@ class Usuario(db.Model):
     Fecha_Contrato_Inicio = db.Column(db.Date)
     rol = db.Column(db.Integer, db.ForeignKey('rol.Id_Rol'))
     rol_rl = db.relationship("Rol", back_populates="usuarios")
+    productos = db.relationship("Producto", back_populates="usuario")
     venta_Usuario = db.relationship("Venta", back_populates="usuario")
     @property
     def contraseña(self):
@@ -59,6 +64,8 @@ class Usuario(db.Model):
 #     categoria_rl = db.relationship("Categoria", back_populates="subcategorias")
 #     productos = db.relationship("Producto", back_populates="subcategoria")
 
+colombia_tz = pytz.timezone('America/Bogota')
+
 
 class Producto(db.Model):  
     Id_Producto = db.Column(db.Integer, primary_key=True, nullable=False)
@@ -74,20 +81,25 @@ class Producto(db.Model):
     Precio_Neto_Unidad_Prod = db.Column(Numeric(10, 2))
     Proveedor = db.Column(db.String(50))
     Categoria = db.Column(db.String(50))
+    movimiento = db.Column(db.Enum(Movimiento), default=Movimiento.ENTRADA, nullable=True)
+    Fecha_Registro_Prod = db.Column(db.DateTime, default=lambda: datetime.now(colombia_tz))
+    id_Usuario = db.Column(db.Integer, db.ForeignKey("usuario.Id_Usuario"))
+    usuario = db.relationship("Usuario", back_populates="productos")
+
     # FK_Id_Proveedor = db.Column(db.Integer, db.ForeignKey("proveedor.Id_Proveedor"))
     # FK_Id_Subcategoria = db.Column(db.Integer, db.ForeignKey("subcategoria.Id_Subcategoria"))
     # proveedor = db.relationship("Proveedor", back_populates="producto")
     # subcategoria = db.relationship("Subcategoria", back_populates="productos")
-    fecha_Registro_Prod= db.relationship("Fecha_Registro_Prod", back_populates="producto")
+    # fecha_Registro_Prod= db.relationship("Fecha_Registro_Prod", back_populates="producto")
     detalle_Venta= db.relationship("Detalle_Venta", back_populates = "producto")
 
-colombia_tz = pytz.timezone('America/Bogota')
 
 class Venta(db.Model):
     Id_Venta = db.Column(db.Integer, primary_key=True)
     Fecha_Venta = db.Column(db.DateTime, default=lambda: datetime.now(colombia_tz))
     Total_Venta = db.Column(db.Numeric(10,2))
     Forma_Pago_Fact = db.Column(db.String(50))
+    movimiento = db.Column(db.Enum(Movimiento), default=Movimiento.SALIDA, nullable=False)
     FK_Id_Usuario = db.Column(db.Integer, db.ForeignKey("usuario.Id_Usuario"))
     usuario = db.relationship("Usuario", back_populates="venta_Usuario")
     detalle_Venta= db.relationship("Detalle_Venta", back_populates = "venta")
@@ -102,6 +114,7 @@ class Detalle_Venta(db.Model):
     Id_Detalle_Venta = db. Column(db.Integer, primary_key=True)
     Cantidad = db.Column(db.Integer)
     precio_unitario = db.Column(db.Numeric(10,2), nullable=False)
+    movimiento = db.Column(db.Enum(Movimiento), default=Movimiento.SALIDA, nullable=False)
     FK_Id_Venta = db.Column(db.Integer, db.ForeignKey("venta.Id_Venta"))
     FK_Id_Producto = db.Column(db.Integer, db.ForeignKey("producto.Id_Producto"))
     FK_Id_Factura = db.Column(db.Integer, db.ForeignKey("factura.Id_Factura"))
@@ -117,7 +130,7 @@ class Fecha_Registro_Prod(db.Model):
     Cantidad = db.Column(db.Integer)
     # FK_Id_Proveedor = db.Column(db.Integer, db.ForeignKey("proveedor.Id_Proveedor"))
     FK_Id_Producto = db.Column(db.Integer, db.ForeignKey("producto.Id_Producto"))
-    producto = db.relationship("Producto", back_populates="fecha_Registro_Prod")
+    # producto = db.relationship("Producto", back_populates="fecha_Registro_Prod")
     # proveedor= db.relationship("Proveedor", back_populates="fecha_Registro_Prod")
 
 
@@ -149,27 +162,6 @@ class UsuarioSchema(SQLAlchemyAutoSchema):   #2
         include_relationships = True
         load_instance = True
 
-class VentaSchema(SQLAlchemyAutoSchema):  #9
-    usuario = fields.Nested(UsuarioSchema)
-    detalle_Venta = fields.Nested(UsuarioSchema)
-
-    class Meta:
-        model = Venta
-        include_relationships = True
-        load_instance = True
-
-    @post_dump
-    def convert_decimal_to_float(self, data, **kwargs):
-        for key, value in data.items():
-            if isinstance(value, Decimal):
-                data[key] = float(value)
-        return data
-    
-    Total_Venta_Formateado = fields.Method("get_total_formateado")
-
-    def get_total_formateado(self, obj):
-        return "${:,.0f}".format(obj.Total_Venta).replace(",", ".")
-
 
 # class ProveedorSchema(SQLAlchemyAutoSchema): #3
     
@@ -198,6 +190,8 @@ class VentaSchema(SQLAlchemyAutoSchema):  #9
 class ProductoSchema(SQLAlchemyAutoSchema):  #8
     # proveedor = fields.Nested(ProveedorSchema)
     # subcategoria = fields.Nested(SubcategoriaSchema)
+    usuario = fields.Nested(UsuarioSchema)
+    movimiento = fields.Function(lambda obj: obj.movimiento.value if obj.movimiento else None)
 
     class Meta:
         model = Producto
@@ -218,7 +212,7 @@ class ProductoSchema(SQLAlchemyAutoSchema):  #8
 class Fecha_Registro_Prod (SQLAlchemyAutoSchema): #4
     
     # Proveedor = fields.Nested(ProveedorSchema)
-    Producto = fields.Nested(ProductoSchema)
+    # Producto = fields.Nested(ProductoSchema)
     
     class Meta:
         model = Fecha_Registro_Prod
@@ -236,9 +230,10 @@ class FacturaSchema(SQLAlchemyAutoSchema): #10
 
 
 class Detalle_VentaSchema(SQLAlchemyAutoSchema):  #11
-    Venta = fields.Nested(VentaSchema)
+    # Venta = fields.Nested(VentaSchema)
     Producto = fields.Nested(ProductoSchema)
     Factura = fields.Nested(FacturaSchema)
+    movimiento = fields.Function(lambda obj: obj.movimiento.value if obj.movimiento else None)
 
     class Meta:
         model = Detalle_Venta
@@ -246,8 +241,40 @@ class Detalle_VentaSchema(SQLAlchemyAutoSchema):  #11
         load_instance = True
 
     @post_dump
-    def convert_decimal_to_float(self, data, **kwargs):
-        for key, value in data.items():
-            if isinstance(value, Decimal):
-                data[key] = float(value)
+    def convert_decimal_and_format(self, data, **kwargs):
+        if 'precio_unitario' in data and isinstance(data['precio_unitario'], Decimal):
+            data['precio_unitario'] = float(data['precio_unitario'])
+
+        if 'precio_unitario' in data and isinstance(data['precio_unitario'], (float, int)):
+            data['precio_unitario_formateado'] = f"${data['precio_unitario']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+
+        # Subtotal formateado: cantidad * precio_unitario
+        if 'Cantidad' in data and 'precio_unitario' in data:
+            try:
+                subtotal = float(data['Cantidad']) * float(data['precio_unitario'])
+                data['subtotal'] = subtotal
+                data['subtotal_formateado'] = f"${subtotal:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
+            except:
+                pass
+
+        return data
+
+class VentaSchema(SQLAlchemyAutoSchema):  #9
+    usuario = fields.Nested(UsuarioSchema)
+    detalle_Venta = fields.Nested(Detalle_VentaSchema, many=True)
+    movimiento = fields.Function(lambda obj: obj.movimiento.value if obj.movimiento else None)
+
+
+    class Meta:
+        model = Venta
+        include_relationships = True
+        load_instance = True
+
+    @post_dump
+    def formatear_total(self, data, **kwargs):
+        if 'Total_Venta' in data and isinstance(data['Total_Venta'], Decimal):
+            data['Total_Venta'] = float(data['Total_Venta'])
+
+        if 'Total_Venta' in data and isinstance(data['Total_Venta'], (float, int)):
+            data['Total_Venta_Formateado'] = f"${data['Total_Venta']:,.2f}".replace(",", "X").replace(".", ",").replace("X", ".")
         return data

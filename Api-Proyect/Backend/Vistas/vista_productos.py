@@ -3,6 +3,7 @@ from flask import request
 from ..Modelos import db, Producto, ProductoSchema
 from flask_jwt_extended import jwt_required, get_jwt_identity
 from decimal import Decimal
+from ..Modelos import Movimiento
 
 producto_schema = ProductoSchema()
 
@@ -99,6 +100,9 @@ class VistaProducto(Resource):
 
         precio_neto = round((precio_bruto * iva) + (precio_bruto * ganancia) + precio_bruto, 3)
 
+        id_usuario = int(get_jwt_identity())
+
+
         nuevo_producto = Producto(
             Nombre_Prod=request.json['Nombre_Prod'],
             Medida_Prod=request.json['Medida_Prod'],
@@ -111,7 +115,8 @@ class VistaProducto(Resource):
             Estado_Prod=request.json['Estado_Prod'],
             Marca_Prod=request.json['Marca_Prod'],
             Proveedor = request.json['Proveedor'],
-            Categoria = request.json['Categoria']
+            Categoria = request.json['Categoria'],
+            id_Usuario=id_usuario, 
             # FK_Id_Proveedor=request.json['FK_Id_Proveedor'],
             # FK_Id_Subcategoria=request.json['FK_Id_Subcategoria']
         )

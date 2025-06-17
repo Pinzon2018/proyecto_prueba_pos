@@ -7,3 +7,4 @@ from .vista_productos import *
 from .vista_Venta import *
 from .vista_login import *
 from .vista_Venta import *
+from .Vista_Historial import *
