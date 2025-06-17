@@ -15,4 +15,7 @@ mysql == 0.0.3
 PyMySQL == 1.1.1
 
 # pip install flasgger flask_sqlalchemy
-#pip install pytz
+# pip install pytz
+# pip install flask_restful
+# pip install flask_jwt_extended
+# pip install flask_cors
